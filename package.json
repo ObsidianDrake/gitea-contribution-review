@@ -1,0 +1,10 @@
+{
+  "name": "gitea-contribution-review",
+  "version": "1.4.3",
+  "private": true,
+  "description": "Single-file Gitea contribution review for PMD",
+  "scripts": {
+    "test": "node tests/integration.cjs",
+    "test:git": "node tests/git-diff.cjs"
+  }
+}

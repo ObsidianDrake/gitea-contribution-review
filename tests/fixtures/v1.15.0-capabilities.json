@@ -1,0 +1,223 @@
+{
+  "source": "https://github.com/go-gitea/gitea/blob/v1.15.0/templates/swagger/v1_json.tmpl",
+  "paths": {
+    "/repos/search": {
+      "get": {
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "name": "topic",
+            "in": "query"
+          },
+          {
+            "name": "includeDesc",
+            "in": "query"
+          },
+          {
+            "name": "uid",
+            "in": "query"
+          },
+          {
+            "name": "priority_owner_id",
+            "in": "query"
+          },
+          {
+            "name": "team_id",
+            "in": "query"
+          },
+          {
+            "name": "starredBy",
+            "in": "query"
+          },
+          {
+            "name": "private",
+            "in": "query"
+          },
+          {
+            "name": "is_private",
+            "in": "query"
+          },
+          {
+            "name": "template",
+            "in": "query"
+          },
+          {
+            "name": "archived",
+            "in": "query"
+          },
+          {
+            "name": "mode",
+            "in": "query"
+          },
+          {
+            "name": "exclusive",
+            "in": "query"
+          },
+          {
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "name": "order",
+            "in": "query"
+          },
+          {
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "name": "limit",
+            "in": "query"
+          }
+        ]
+      }
+    },
+    "/repos/{owner}/{repo}/branches": {
+      "get": {
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path"
+          },
+          {
+            "name": "repo",
+            "in": "path"
+          },
+          {
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "name": "limit",
+            "in": "query"
+          }
+        ]
+      }
+    },
+    "/repos/{owner}/{repo}/commits": {
+      "get": {
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path"
+          },
+          {
+            "name": "repo",
+            "in": "path"
+          },
+          {
+            "name": "sha",
+            "in": "query"
+          },
+          {
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "name": "limit",
+            "in": "query"
+          }
+        ]
+      }
+    },
+    "/repos/{owner}/{repo}/pulls": {
+      "get": {
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path"
+          },
+          {
+            "name": "repo",
+            "in": "path"
+          },
+          {
+            "name": "state",
+            "in": "query"
+          },
+          {
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "name": "milestone",
+            "in": "query"
+          },
+          {
+            "name": "labels",
+            "in": "query"
+          },
+          {
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "name": "limit",
+            "in": "query"
+          }
+        ]
+      }
+    },
+    "/repos/{owner}/{repo}/pulls/{index}.patch": {
+      "get": {
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path"
+          },
+          {
+            "name": "repo",
+            "in": "path"
+          },
+          {
+            "name": "index",
+            "in": "path"
+          }
+        ]
+      }
+    },
+    "/repos/{owner}/{repo}/pulls/{index}/commits": {
+      "get": {
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path"
+          },
+          {
+            "name": "repo",
+            "in": "path"
+          },
+          {
+            "name": "index",
+            "in": "path"
+          },
+          {
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "name": "limit",
+            "in": "query"
+          }
+        ]
+      }
+    },
+    "/user/repos": {
+      "get": {
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "name": "limit",
+            "in": "query"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Gitea · 工作成果回顧</title>
+<style>
+:root{color-scheme:light;--ink:#16312d;--muted:#667b76;--accent:#087c68;--border:#dbe5e0;--bg:#f3f6f2}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}main{max-width:1500px;margin:auto;padding:32px}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px}h1{font-size:30px;letter-spacing:-1px;margin:4px 0}h2{font-size:18px;margin:0 0 16px}p{margin:8px 0}.eyebrow{font-size:11px;letter-spacing:2px;font-weight:750;color:var(--accent)}.muted,small{color:var(--muted)}.panel{background:white;border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px}.form{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px}label{display:block;font-weight:600;font-size:12px}input,select,button{font:inherit}input,select{width:100%;border:1px solid #c7d5cd;background:#fff;border-radius:8px;padding:10px;color:var(--ink);margin-top:5px}input:focus,select:focus,button:focus-visible{outline:2px solid #53aa94;outline-offset:2px}.actions,.filters,.tabs{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.actions{margin-top:18px}button{border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--ink);padding:9px 16px;cursor:pointer;font-weight:600}button.primary,.tabs button.active{background:var(--accent);color:white;border-color:var(--accent)}button:disabled{opacity:.45;cursor:default}.notice{background:#f8f4e8;color:#735b27;padding:12px 16px;border-radius:8px;margin-top:14px}.status{white-space:pre-wrap}progress{width:100%;height:8px;accent-color:var(--accent)}.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:20px 0}.metric{background:white;border:1px solid var(--border);padding:16px;border-radius:12px}.metric b{font-size:26px;display:block;line-height:1.4}.metric span{font-size:12px;color:var(--muted)}.filters{margin:18px 0}.filters input{flex:2;min-width:200px;margin:0}.filters select{flex:1;min-width:170px;margin:0}.scroll{overflow:auto;border:1px solid var(--border);border-radius:10px}table{width:100%;border-collapse:collapse;text-align:left;font-size:13px}th{background:#f0f5f1;color:#61746b;white-space:nowrap;font-size:11px;letter-spacing:.3px}th,td{padding:13px 14px;border-bottom:1px solid #e8eee9;vertical-align:top}td.message{min-width:250px;max-width:440px}tbody tr:hover{background:#fafcf9}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}.badge{font-size:11px;background:#eef4f0;border-radius:5px;padding:3px 7px;display:inline-block;white-space:nowrap;margin:2px}.warn{background:#fff0cf;color:#805800}.plus{color:#087c68}.minus{color:#b34a3e}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f4f7f4;border-radius:8px;padding:12px;font:12px/1.6 ui-monospace,monospace}summary{cursor:pointer;overflow-wrap:anywhere}.empty{text-align:center;padding:60px 20px;color:var(--muted)}.right{margin-left:auto}.pager{display:flex;gap:12px;justify-content:flex-end;align-items:center;margin-top:14px}fieldset{border:0;margin:0;padding:0}footer{font-size:12px;color:var(--muted);margin-top:20px}#errors{max-height:230px;overflow:auto}#errors p{font-size:12px;margin:5px 0}details.help{margin-top:18px}code{overflow-wrap:anywhere} @media(max-width:800px){main{padding:16px}.form{grid-template-columns:1fr 1fr}.metrics{grid-template-columns:repeat(3,1fr)}header{display:block}.panel{padding:16px}h1{font-size:25px}}@media(max-width:500px){.form{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}
+
+.repo-picker{border-top:1px solid var(--border);margin-top:22px;padding-top:20px}
+.repo-groups{max-height:420px;overflow:auto;margin-top:14px;border:1px solid var(--border);border-radius:10px}
+.repo-group{border-bottom:1px solid var(--border);padding:14px 16px}
+.repo-group:last-child{border-bottom:0}.repo-group-title{background:#f3f7f3;padding:8px;border-radius:6px}
+.repo-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;padding-top:10px}
+.repo-choice{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;overflow-wrap:anywhere}
+.repo-choice input{width:17px;height:17px;flex-shrink:0;margin:0;accent-color:var(--accent)}
+#catalogNotice{white-space:pre-wrap}#selectionCount{font-weight:650}#catalogFilter{max-width:440px}
+.result-repos{margin:0 0 22px;border:1px solid var(--border);border-radius:12px;background:#f7faf8;overflow:hidden}
+.result-repos>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:56px;padding:14px 18px;font-size:15px;font-weight:700;list-style:none}
+.result-repos>summary::-webkit-details-marker{display:none}.result-repos>summary::after{content:'＋';font-size:20px;font-weight:400}.result-repos[open]>summary::after{content:'−'}
+.result-repos>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
+.result-repos>summary span{flex:1;color:var(--muted);font-size:13px;font-weight:500;text-align:right}
+.result-repo-body{padding:0 18px 18px;border-top:1px solid var(--border)}
+.result-repo-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 0}
+.result-repo-tools input{flex:1;min-width:180px;margin:0;background:white;min-height:44px;font-size:14px}
+.result-repo-tools button{min-height:44px;background:white}.result-repo-hint{margin:0 0 12px;font-size:13px;color:var(--muted)}
+#repoFilter{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;max-height:380px;overflow:auto;padding:3px;scrollbar-gutter:stable}
+#repoFilter label{display:flex;gap:12px;align-items:center;min-height:78px;padding:14px;border:1px solid #cbd8d1;border-radius:9px;background:white;cursor:pointer;transition:background .12s,border-color .12s}
+#repoFilter label:hover{border-color:var(--accent);background:#f0f8f3}#repoFilter label:has(input:checked){border-color:#459780;background:#eaf5ef}#repoFilter label:focus-within{outline:2px solid var(--accent);outline-offset:1px}
+#repoFilter input{width:20px;min-width:20px;max-width:20px;height:20px;flex:0 0 20px;margin:0;padding:0;accent-color:var(--accent);cursor:pointer}
+.result-repo-name{flex:1;min-width:0;overflow-wrap:anywhere}.result-repo-name small{display:block;font-size:12px;font-weight:500;line-height:1.4;color:#526a62}.result-repo-name strong{display:block;font-size:15px;font-weight:650;line-height:1.5;margin-top:3px}
+.result-repo-count{font-size:12px;font-weight:600;white-space:nowrap;background:white;border:1px solid var(--border);border-radius:20px;padding:3px 8px;color:#456058}
+.result-repo-empty{grid-column:1/-1;padding:20px;margin:0;color:var(--muted);text-align:center}
+@media(max-width:600px){#repoFilter{grid-template-columns:1fr}.result-repo-tools input{flex-basis:100%}.result-repo-tools button{flex:1}.result-repos>summary{flex-wrap:wrap;gap:8px}.result-repo-body{padding:0 12px 12px}.result-repos>summary span{font-size:12px}.result-repo-count{padding:3px 6px}}
+</style></head><body><main>
+<header><div><div class="eyebrow">ENGINEERING / CONTRIBUTION REVIEW</div><h1>把修改紀錄，串成工作成果。</h1><p class="muted">跨專案回顧個人提交，從 Pull Request 找回需求脈絡。</p></div><span class="badge">GITEA · PMD REVIEW / v1.4.3</span></header>
+<section class="panel"><h2>01　連線與回顧期間</h2><form id="form" autocomplete="off"><fieldset id="settings"><div class="form">
+<label>Gitea URL<input id="base" type="url" value="http://drc:8080/gitea" required></label>
+<label>驗證方式<select id="auth"><option value="basic">帳號與密碼</option><option value="token">Personal Access Token</option></select></label>
+<label>帳號<input id="username" autocomplete="off" placeholder="Gitea username"></label>
+<label>密碼／Token<input id="secret" type="password" autocomplete="new-password" required></label>
+<label>開始日期（台灣）<input id="start" type="date" required></label><label>結束日期（含當天）<input id="end" type="date" required></label>
+<label>單次請求逾時（秒）<input id="timeout" type="number" min="30" max="1800" step="1" value="180"><small>預設 180 秒；大型專案可提高至 600 秒或以上，仍可隨時停止。</small></label>
+</div></fieldset>
+<div class="actions"><button type="button" id="check">連線並載入專案</button><button type="button" id="reloadCatalog" disabled>重新載入清單</button></div>
+<fieldset id="repoSettings" class="repo-picker"><h2>選擇要分析的專案</h2>
+<p class="muted">依組織／擁有者分組；僅分析勾選的程式碼 repo。PR 引用其他 repo 的 issue 仍會保留連結。</p>
+<label>搜尋組織／擁有者或 repository<input id="catalogFilter" type="search" placeholder="例如：PDKD、DRC_QA…"></label>
+<div class="actions"><button type="button" id="selectVisible" disabled>全選符合篩選的專案</button><button type="button" id="clearSelection" disabled>取消全部選取</button><span id="selectionCount" aria-live="polite">已選取 0 個 repo</span></div>
+<p id="catalogNotice" class="muted" role="status">請先連線並載入專案清單。</p>
+<div id="catalog" class="repo-groups"><div class="empty">載入後，選擇這次要回顧的專案。</div></div></fieldset>
+<div class="actions"><button class="primary" type="submit" id="run" disabled>分析已選取專案 →</button><button type="button" id="cancel" disabled>停止查詢</button><button type="button" id="clear" class="right">清空資料與密碼</button></div></form>
+<p id="connection" class="muted" aria-live="polite">資料僅保留於本頁記憶體。只讀取 Gitea API 與必要的原始 diff，不修改 Gitea。</p>
+<p id="compatibility" class="muted" aria-live="polite"></p><details class="help"><summary>統計規則、限制與部署說明</summary><p>以各 repo 預設分支的第一 parent 歷史為範圍，包含直接提交。日期依 Committer date 篩選，顯示台灣時間。PR 的合併 SHA 核對成功後，優先以 merged_by 歸屬登入使用者；否則使用登入帳號的 email 與 committer email 比對。無 email 時只納入可驗證的 PR 合併者紀錄並提示資料受限。</p><p>一般 merge 比較第一 parent；squash 計最終一筆；rebase 逐筆計主線提交。不重複加總開發分支的原始 commits。不掃完整 PR 清單或讀取 PR patch；message 缺少 PR 線索時可能無法取得 issue 關聯。只解析 PR body 的 Organization/Repository#number。</p><p>變更量＝新增＋刪除；缺失資料顯示「—」，不補零。合併結果代表整個變更，不是單一原作者的工作量。同 repo 同 SHA 去重，跨 repo 可能重複。資料只留在記憶體，可手動匯出 CSV。</p><p>單次請求逾時預設 180 秒，可調整為 30–1800 秒。可隨時停止並保留已取得紀錄。舊版 Gitea 以原始 commit diff 補讀統計；若收到登入頁，請先在同一瀏覽器登入 Gitea。HTTP 帳密傳輸沒有 TLS 加密，適用於指定受控內網。</p><p>部署：將 gitea_contribution.html 放到 Apache 網站根目錄下的部署子目錄，並沿用該目錄的網站路徑。若 Apache 尚未設定無副檔名路徑，可在該目錄的 .htaccess 加入以下規則（需 mod_rewrite 與 AllowOverride FileInfo）；Traefik 應將該部署子目錄對應的 URL 路徑路由至 Apache，保留路徑：</p><pre>RewriteEngine On
+RewriteRule ^gitea_contribution$ gitea_contribution.html [L]</pre><p>若 .html 可開、無副檔名 URL 不可開，請檢查 rewrite。若收到 HTML 而非 JSON，請檢查 /gitea/api/v1 的 Traefik 路由。若站台 CSP 禁止 inline script/style，需由管理員為此單檔配置適當 hash 或 nonce。</p></details>
+</section>
+<section class="panel"><div class="eyebrow">SCAN STATUS</div><p id="status" class="status" role="status" aria-live="polite">尚未查詢。請設定帳號與回顧期間。</p><progress id="progress" value="0" max="1"></progress><details id="errorBox" hidden><summary id="errorTitle">未完成項目</summary><div id="errors"></div></details></section>
+<div id="metrics" class="metrics"></div>
+<section class="panel"><div class="actions" style="margin-top:0"><h2 style="margin:0">02　工作紀錄</h2><button id="export" class="right" disabled>匯出目前視圖 CSV ↓</button></div>
+<div class="filters"><input id="query" placeholder="搜尋 message、repo、PR 標題或 issue…" aria-label="搜尋結果"><select id="kind" aria-label="篩選統計狀態"><option value="">全部紀錄</option><option value="included">納入變更量</option><option value="excluded">排除／待確認</option><option value="unlinked">未找到 PR</option></select></div>
+<details class="result-repos" open><summary>篩選專案<span id="repoFilterSummary">尚無紀錄</span></summary><div class="result-repo-body"><div class="result-repo-tools"><input id="resultRepoSearch" type="search" placeholder="搜尋有紀錄的組織或專案…" aria-label="搜尋專案篩選選項"><button type="button" id="resultReposAll">全選專案</button><button type="button" id="resultReposNone">清除選取</button></div><p class="result-repo-hint">只列出已找到工作紀錄的專案。點選整張卡片即可切換，筆數為本次查詢取得的紀錄數。</p><div id="repoFilter" aria-label="工作紀錄專案篩選"></div></div></details>
+<div class="tabs"><button data-tab="commits" class="active">Commit 明細</button><button data-tab="repos">Repo 彙整</button><button data-tab="issues">Issue 彙整</button><button data-tab="prs">PR 回顧</button></div>
+<p id="summary" class="muted"></p><div id="results" class="scroll"><div class="empty">你的工作紀錄，將在這裡整理成可以回顧的成果。</div></div><div class="pager"><button id="prev" disabled>上一頁</button><span id="pageInfo">0 / 0</span><button id="next" disabled>下一頁</button></div>
+</section><footer>所有統計依目前篩選更新。Issue 關聯可能一對多；不要加總各 issue 的 commit 數作為總提交數。CSV 的查詢狀態欄會標示資料是否完整。</footer></main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id), esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])), enc=encodeURIComponent;
+const S={resultRepos:null,rows:new Map(),prs:new Map(),errors:[],busy:false,controller:null,base:'',tab:'commits',page:0,outcome:'尚未查詢',requests:0,range:null,scope:'',catalog:new Map(),selected:new Set(),catalogState:'empty',catalogErrors:[],catalogIdentity:null,scanRepos:[],scanCatalogState:'',schema:null,schemaBase:null,notes:new Map(),commitCache:new Map()};
+const lower=v=>String(v||'').trim().toLowerCase(), num=v=>Number.isFinite(v)&&v>=0?v:null;
+const taipei=d=>{const t=new Date(d);return Number.isFinite(+t)?new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(t):'—'};
+const today=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Taipei'}).format(new Date());$('end').value=today;$('start').value=today.slice(0,4)+'-01-01';
+function refs(body){const out=new Map();for(const m of String(body||'').matchAll(/(?:^|[^\w./-])([A-Za-z0-9_][A-Za-z0-9_.-]*)\/([A-Za-z0-9_][A-Za-z0-9_.-]*)#([1-9]\d*)\b/g)){const key=m[1]+'/'+m[2]+'#'+m[3];out.set(key.toLowerCase(),{key,url:S.base+'/'+enc(m[1])+'/'+enc(m[2])+'/issues/'+m[3]});}return [...out.values()];}
+function href(url,label){try{const u=new URL(url);if(!/^https?:$/.test(u.protocol))return esc(label);return '<a target="_blank" rel="noopener noreferrer" href="'+esc(u.href)+'">'+esc(label)+'</a>';}catch{return esc(label);}}
+const repoPath=r=>'/repos/'+r.split('/').map(enc).join('/');
+function key(r,sha){return r+'@'+sha;}
+function warn(where,e){if(e.name==='AbortError')throw e;S.errors.push(where+'：'+e.message);$('errorBox').hidden=false;$('errorTitle').textContent='未完成／受限項目（'+S.errors.length+'）';const p=document.createElement('p');p.textContent=S.errors.at(-1);$('errors').append(p);}
+function progress(text){if(text!==undefined)S.progressText=text;$('status').textContent=(S.progressText||'')+'\nAPI 請求 '+S.requests+' 次 · 個人紀錄 '+S.rows.size+' 筆'+(S.activeRequest?'\n等待回應：'+S.activeRequest:'');}
+function interruptible(promise,signal){return new Promise((resolve,reject)=>{const stopped=()=>reject(new DOMException('請求中止','AbortError'));if(signal.aborted){Promise.resolve(promise).catch(()=>{});stopped();return;}signal.addEventListener('abort',stopped,{once:true});Promise.resolve(promise).then(resolve,reject).finally(()=>signal.removeEventListener('abort',stopped));});}
+function abort(){if(S.controller.signal.aborted)throw new DOMException('已停止','AbortError');}
+const delay=ms=>new Promise((resolve,reject)=>{const signal=S.controller.signal;if(signal.aborted)return reject(new DOMException('已停止','AbortError'));const fn=()=>{clearTimeout(t);reject(new DOMException('已停止','AbortError'));};const t=setTimeout(()=>{signal.removeEventListener('abort',fn);resolve();},ms);signal.addEventListener('abort',fn,{once:true});});
+function note(code,message){S.notes.set(code,message);$('compatibility').textContent=[...S.notes.values()].join(' · ');}
+// root routes are fixed paths under the user-selected Gitea base, never server-provided URLs.
+async function api(path,params={},options={}){
+  abort();const u=new URL(S.base+(options.root?'':'/api/v1')+path);
+  Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
+  for(let attempt=0;attempt<3;attempt++){
+    abort();const timeout=S.timeoutSeconds||180;const ctrl=new AbortController(),relay=()=>ctrl.abort();
+    S.controller.signal.addEventListener('abort',relay,{once:true});const timer=setTimeout(()=>ctrl.abort(),timeout*1000);
+    try{
+      S.requests++;S.activeRequest=u.pathname+u.search;progress();
+      const res=await interruptible(fetch(u,{headers:{...S.headers,Accept:options.text?'text/plain': 'application/json'},signal:ctrl.signal,
+        credentials:options.web?'same-origin':'omit',cache:'no-store',redirect:'error'}),ctrl.signal);
+      if((res.status===429||res.status>=500)&&attempt<2){
+        const raw=res.headers.get('Retry-After');let wait=Number(raw)*1000;
+        if(raw&&!Number.isFinite(wait))wait=Date.parse(raw)-Date.now();
+        await delay(Math.min(30000,Math.max(1000,wait||1000*(attempt+1))));continue;
+      }
+      if(!res.ok){const e=new Error('HTTP '+res.status+(res.status===401?'：驗證失敗':res.status===403?'：沒有讀取權限':''));e.status=res.status;throw e;}
+      let data;
+      if(options.text){
+        data=await interruptible(res.text(),ctrl.signal);
+        if(/text\/html/i.test(res.headers.get('Content-Type')||'')||/^\s*<(?:!doctype\s+html|html|head|body)\b/i.test(data)){
+          throw new Error('收到 HTML 而非 diff；請在同一瀏覽器登入 Gitea 後重試');
+        }
+      }else{try{data=await interruptible(res.json(),ctrl.signal);}catch(e){if(e.name==='AbortError')throw e;throw new Error('API 未回傳 JSON，請檢查 Gitea 子路徑／反向代理');}}
+      if(options.meta){const headers={};for(const key of ['Link','X-Page','X-PerPage','X-Total','X-Total-Count','X-PageCount','X-HasMore'])headers[key]=res.headers.get(key);return {data,headers};}
+      return data;
+    }catch(e){
+      
+      if(S.controller.signal.aborted)throw new DOMException('已停止','AbortError');
+      let failure=e;
+      if(e.name==='AbortError')failure=new Error('請求超過 '+timeout+' 秒，伺服器可能仍在處理；可提高單次請求逾時後重試');
+      if(e instanceof TypeError)failure=new Error(options.web?'無法取得網頁 diff：請在同一瀏覽器登入 Gitea，並檢查網路與路由':'連線失敗：請檢查網路、CORS 或重新導向');
+      failure.endpoint=(options.root?'':'/api/v1')+path;
+      failure.message+=' ['+failure.endpoint+']';throw failure;
+    }finally{clearTimeout(timer);S.controller.signal.removeEventListener('abort',relay);S.activeRequest='';progress();}
+  }
+}
+function apiOperation(path){
+  if(!S.schema?.paths)return null;
+  for(const [template,value] of Object.entries(S.schema.paths)){
+    const regex='^'+template.split(/(\{[^}]+\})/).map(p=>p.startsWith('{')?'[^/]+':p.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('')+'$';
+    if(new RegExp(regex).test(path))return value.get?{...value.get,parameters:[...(value.parameters||[]),...(value.get.parameters||[])]}:null;
+  }
+  return null;
+}
+async function capabilities(){
+  if(S.schemaBase===S.base)return;
+  S.schema=null;S.schemaBase=S.base;
+  try{
+    const spec=await api('/swagger.v1.json',{}, {root:true});
+    if(!spec||typeof spec.paths!=='object')throw new Error('未提供 API 定義');
+    S.schema=spec;
+    note('schema','已讀取伺服器 API 定義，自動相容舊版功能');
+  }catch(e){if(e.name==='AbortError')throw e;note('schema','API 定義無法取得，依回應欄位與分頁標頭自動判斷；不需手動指定版本');}
+}
+function queryParameters(op){
+  if(!op)return null;
+  const out=[];
+  for(let p of op.parameters||[]){
+    if(p.$ref){p=p.$ref.startsWith('#/parameters/')?S.schema?.parameters?.[p.$ref.slice(13)]:null;if(!p)return null;}
+    if(p.in==='query')out.push(p.name);
+  }
+  return out;
+}
+function endOfPages(headers,received,page){
+  const h=headers||{};
+  if(h['X-Page']!=null&&Number(h['X-Page'])!==page)throw new Error('伺服器回傳頁碼與請求不同，已保留已取得資料');
+  if(lower(h['X-HasMore'])==='false')return true;
+  if(h['X-PageCount']!=null&&Number.isFinite(Number(h['X-PageCount']))&&page>=Number(h['X-PageCount']))return true;
+  const total=h['X-Total-Count']??h['X-Total'];
+  if(total!==null&&total!==undefined&&Number.isFinite(Number(total))&&received>=Number(total))return true;
+  // Link URLs are never followed, so credentials cannot be forwarded to another origin.
+  if(h.Link&&!/rel\s*=\s*["']?next\b/i.test(h.Link))return true;
+  return false;
+}
+async function pages(path,params,each){
+  const queries=queryParameters(apiOperation(path));
+  const paginated=queries===null||queries.includes('page');
+  const allowed=queries===null?params:Object.fromEntries(Object.entries(params).filter(([k])=>queries.includes(k)));
+  const seen=new Set();let received=0;
+  for(let page=1;;page++){
+    await delay(0); // Let Stop and progress repaint between pages.
+    if(page>10000)throw new Error('超過 10000 頁安全上限；保留已取得資料，完整性未知 ['+path+']');
+    const query=paginated?{...allowed,page,...(queries===null||queries.includes('limit')?{limit:50}:{})}:allowed;
+    const {data:raw,headers}=await api(path,query,{meta:true});
+    const list=Array.isArray(raw)?raw:raw.data;
+    if(!Array.isArray(list))throw new Error('API 列表格式不支援 ['+path+']');
+    if(!list.length)return;
+    const fresh=[];
+    for(const item of list){const id=String(item.sha??item.id??item.full_name??item.name??item.number??JSON.stringify(item));if(!seen.has(id)){seen.add(id);fresh.push(item);}}
+    if(!fresh.length)throw new Error('此端點重複回傳已取得項目，且沒有可靠的結束資訊；保留已取得資料，完整性未知 ['+path+']');
+    received+=fresh.length;await each(fresh);
+    if(!paginated){note('unpaged:'+path,'舊版 '+path+' 為不分頁清單，已單次讀取');return;}
+    if(endOfPages(headers,received,page))return;
+  }
+}
+// Parse only validated unified diff hunks. Missing/truncated hunks never become a zero statistic.
+function gitPath(value){
+  if(!value.startsWith('"'))return value;
+  if(!value.endsWith('"'))throw new Error('diff 檔名引號不完整');
+  const bytes=[],encoder=new TextEncoder();
+  for(let i=1;i<value.length-1;){
+    if(value[i]!=='\\'){const point=String.fromCodePoint(value.codePointAt(i));bytes.push(...encoder.encode(point));i+=point.length;continue;}
+    i++;const oct=value.slice(i).match(/^[0-7]{1,3}/);
+    if(oct){bytes.push(parseInt(oct[0],8));i+=oct[0].length;continue;}
+    const escapes={n:10,r:13,t:9,b:8,f:12,v:11,a:7,'"':34,'\\':92};
+    if(!(value[i] in escapes))throw new Error('不支援的 diff 檔名跳脫');bytes.push(escapes[value[i++]]);
+  }
+  return new TextDecoder('utf-8',{fatal:true}).decode(new Uint8Array(bytes));
+}
+function diffHeaderPaths(line){
+  const m=line.match(/^diff --git ("(?:[^"\\]|\\.)*"|a\/.*?) ("(?:[^"\\]|\\.)*"|b\/.*)$/);
+  if(!m)throw new Error('無法解析 diff 檔案標頭');
+  return [gitPath(m[1]),gitPath(m[2])];
+}
+function diffBody(text,expectedSHA){
+  text=text.replace(/^\uFEFF/,'');
+  const lines=text.split('\n');let start=0;
+  while(start<lines.length&&!lines[start].trim())start++;
+  // Gitea 1.12 runs `git show <sha>` for root commits: medium-format metadata precedes the diff.
+  if(/^commit /.test(lines[start]||'')){
+    const header=lines[start].match(/^commit ([a-f0-9]{40}|[a-f0-9]{64})$/);
+    if(!header||!expectedSHA||header[1]!==expectedSHA)throw new Error('git show 的 commit SHA 無法核對或與查詢不符');
+    if(!/^Author: +\S/.test(lines[start+1]||'')||!/^Date: +\S/.test(lines[start+2]||'')||lines[start+3]!=='')throw new Error('git show 作者／日期標頭不完整或格式不支援');
+    start+=4;
+    // Commit message lines are indented by Git, even when they contain diff-like text.
+    while(start<lines.length&&(lines[start]===''||lines[start].startsWith('    ')))start++;
+    if(start===lines.length)throw new Error('git show 沒有可驗證的 diff，無法確認為空提交或資料遺失');
+    if(!lines[start].startsWith('diff --git '))throw new Error('git show 訊息後不是支援的原始 diff');
+    return lines.slice(start).join('\n');
+  }
+  return text;
+}
+function diffFormat(text){
+  const first=text.trimStart();
+  const kind=/^</.test(first)?'HTML／XML':/^[{\[]/.test(first)?'JSON 類型':/^From [a-f0-9]+ /.test(first)?'郵件 patch':/^commit /.test(first)?'git show':/\u001b\[/.test(first)?'含 ANSI 色碼':'未知文字';
+  return kind+'；長度 '+text.length+' 字元';
+}
+function parseDiff(text,expectedSHA){
+  if(!text.trim())throw new Error('原始 diff 為空，無法確認為空提交或資料遺失');
+  text=diffBody(text,expectedSHA);
+  const files=[];let current=null,hunk=null,add=0,del=0;
+  const finish=()=>{
+    if(hunk&&(hunk.old!==0||hunk.new!==0))throw new Error('原始 diff 不完整：hunk 行數不足');
+    hunk=null;
+    if(current){if(!current.change)throw new Error('原始 diff 不完整：缺少檔案變更內容');files.push(current.path);}
+  };
+  for(const line of text.split(/\n/)){
+    if(line.startsWith('diff --git ')){
+      finish();const [oldPath,newPath]=diffHeaderPaths(line);
+      current={path:newPath.replace(/^b\//,''),oldPath:oldPath.replace(/^a\//,''),change:false,binary:false};continue;
+    }
+    if(/^diff --(?:cc|combined) |^@@@/.test(line))throw new Error('combined merge diff 不提供一般行數統計');
+    if(!current){if(line.trim())throw new Error('回應不是原始 Git diff（'+diffFormat(text)+'）');continue;}
+    if(line.startsWith('@@ ')){
+      if(hunk&&(hunk.old||hunk.new))throw new Error('原始 diff 不完整：前一個 hunk 未結束');
+      const m=line.match(/^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/);
+      if(!m)throw new Error('不支援的 diff hunk 格式');
+      hunk={old:m[2]===undefined?1:Number(m[2]),new:m[4]===undefined?1:Number(m[4])};current.change=true;continue;
+    }
+    if(hunk&&(hunk.old||hunk.new)){
+      if(line.startsWith('\\ No newline at end of file'))continue;
+      if(line[0]==='+'){add++;hunk.new--;}
+      else if(line[0]==='-'){del++;hunk.old--;}
+      else if(line[0]===' '){hunk.old--;hunk.new--;}
+      else throw new Error('原始 diff 不完整或 hunk 內容不合法');
+      if(hunk.old<0||hunk.new<0)throw new Error('原始 diff hunk 行數超出標頭');continue;
+    }
+    if(line.startsWith('+++ ')){
+      const path=gitPath(line.slice(4).split('\t')[0]);current.path=path==='/dev/null'?current.oldPath:path.replace(/^b\//,'');
+    }else if(line.startsWith('--- ')){
+      const path=gitPath(line.slice(4).split('\t')[0]);if(path!=='/dev/null')current.oldPath=path.replace(/^a\//,'');
+    }else if(line.startsWith('rename to ')||line.startsWith('copy to ')){
+      current.path=gitPath(line.slice(line.indexOf(' to ')+4));current.change=true;
+    }else if(/^(old mode |new mode |new file mode |deleted file mode |Binary files )/.test(line))current.change=true;
+    else if(line==='GIT binary patch'){current.change=true;current.binary=true;}
+    else if(!line||/^(index |similarity index |dissimilarity index |rename from |copy from |\\ No newline at end of file)/.test(line)){}
+    else if(!current.binary)throw new Error('無法驗證原始 diff 的完整性');
+  }
+  finish();if(!files.length)throw new Error('沒有可驗證的 diff 檔案');
+  return {stats:{add,del},files:[...new Set(files)]};
+}
+async function commitDetail(repo,sha){
+  const id=key(repo,sha);
+  if(S.commitCache.has(id))return S.commitCache.get(id);
+  const c=await api(repoPath(repo)+'/git/commits/'+enc(sha),{stat:true,files:true,verification:false});
+  S.commitCache.set(id,c);return c;
+}
+async function hydrateRow(r){
+  r.detailError='';let c;
+  try{c=await commitDetail(r.repo,r.sha);}catch(e){
+    if(e.name==='AbortError'||e.status!==404)throw e;
+    // A legacy detail endpoint can fail even when branch history supplied valid metadata.
+    c=r.c;r.detailError='Commit 詳細 API：'+e.message;
+    warn(r.repo+' '+r.sha.slice(0,8)+' 詳細資料',e);
+  }
+  r.c={...r.c,...c};
+  if(c.stats)r.stats={add:num(c.stats.additions),del:num(c.stats.deletions)};
+  if(Array.isArray(c.files))r.files=c.files.map(f=>f.filename).filter(x=>typeof x==='string');
+  if(r.finalResult&&r.c.parents?.length>1){r.stats=null;r.files=null;} // Verify merge statistics against the first-parent raw diff.
+  r.statsSource=r.stats?.add!=null&&r.stats?.del!=null?'API':'';
+  const missing=[];
+  if(!Array.isArray(r.c.parents))missing.push('parent 資訊');
+  if((!r.stats||r.stats.add===null||r.stats.del===null||r.files===null)&&(r.c.parents?.length<=1||r.finalResult)){
+    try{
+      const path='/'+r.repo.split('/').map(enc).join('/')+'/commit/'+enc(r.sha)+'.diff';
+      const diff=parseDiff(await api(path,{}, {root:true,web:true,text:true}),r.sha);
+      if(r.files!==null&&(r.files.length!==diff.files.length||r.files.some(f=>!diff.files.includes(f))))throw new Error('API 檔案清單與 diff 不符，可能不完整');
+      if(!r.stats||r.stats.add===null||r.stats.del===null){r.stats=diff.stats;r.statsSource='raw diff';}
+      if(r.files===null)r.files=diff.files;
+      note('diff','舊版未提供行數時，已由原始 diff 計算；二進位內容不計文字行數');
+    }catch(e){if(e.name==='AbortError')throw e;missing.push('diff 補讀失敗：'+e.message);}
+  }
+  // Merge rows are excluded already; missing diff stats on them is not a scan failure.
+  if(r.finalResult||!(r.c.parents?.length>1)){
+    if(!r.stats||r.stats.add===null||r.stats.del===null)missing.push('新增／刪除行數');
+    if(r.files===null)missing.push('變更檔案清單');
+  }
+  if(missing.length){r.detailError=[r.detailError,...missing].filter(Boolean).join('；');warn(r.repo+' '+r.sha.slice(0,8),new Error('無法取得：'+missing.join('；')+'。已知欄位保留，未知欄位不補零'));}
+}
+function readConfig(){const timeout=Number($('timeout').value||180);if(!Number.isInteger(timeout)||timeout<30||timeout>1800)throw new Error('單次請求逾時請輸入 30–1800 秒的整數');S.timeoutSeconds=timeout;const u=new URL($('base').value.trim());if(!/^https?:$/.test(u.protocol)||u.username||u.password||u.search||u.hash)throw new Error('請輸入不含帳密、query 或 fragment 的 HTTP(S) Gitea URL');if(location.origin!==u.origin&&!confirm('將直接連線至 '+u.origin+' 並傳送輸入的驗證資訊。確定這是你的 Gitea 嗎？'))throw new Error('已取消跨來源連線');S.base=u.href.replace(/\/+$/,'');const secret=$('secret').value;if(!secret)throw new Error('請輸入密碼或 Token');S.headers={Accept:'application/json'};if($('auth').value==='token')S.headers.Authorization='token '+secret;else{const user=$('username').value.trim();if(!user||user.includes(':'))throw new Error('請輸入有效帳號');S.headers.Authorization='Basic '+btoa(Array.from(new TextEncoder().encode(user+':'+secret),x=>String.fromCharCode(x)).join(''));}}
+async function identify(){const user=await api('/user');let version='未知';try{version=(await api('/version')).version||'未知';}catch(e){if(e.name==='AbortError')throw e;}S.user=user;await capabilities();S.email=lower(user.email);$('connection').textContent='已連線：'+user.login+' · Gitea '+version+' · Git email：'+(S.email||'帳號未提供；僅能核對 PR 合併者');}
+function inRange(c){const t=Date.parse(c.commit?.committer?.date);return Number.isFinite(t)&&t>=S.range.start&&t<S.range.end;}
+function reason(r){return r.attributionError||'';}
+function included(r){return !reason(r);}
+async function hydratePending(name){
+  for(const r of S.rows.values()){
+    if(r.repo!==name||r.statsState!=='pending')continue;
+    abort();r.statsState='loading';progress('取得 '+name+'：'+r.sha.slice(0,10)+' 變更統計');render();
+    try{await hydrateRow(r);r.statsState=r.detailError?'partial':'done';}
+    catch(e){r.statsState=e.name==='AbortError'?'cancelled':'failed';r.detailError=e.name==='AbortError'?'統計讀取已停止':e.message;warn(name+' '+r.sha.slice(0,8)+' 詳細資料',e);}
+    finally{render();}
+  }
+}
+function statisticsStatus(r){return ({pending:'尚未讀取統計',loading:'正在讀取統計',cancelled:'統計讀取已停止',failed:'統計讀取失敗',partial:'統計讀取受限',done:'統計讀取完成'})[r.statsState]||'尚未讀取統計';}
+function hintedPR(c,repo){
+  const message=c.commit?.message||'';
+  for(const match of message.matchAll(/^Reviewed-on:\s*(\S+)/gm)){
+    try{const u=new URL(match[1]),base=new URL(S.base);const prefix=base.pathname.replace(/\/$/,'')+'/'+repo.split('/').map(enc).join('/')+'/pulls/';if(u.origin===base.origin&&u.pathname.startsWith(prefix)){const n=u.pathname.slice(prefix.length);if(/^[1-9]\d*$/.test(n))return n;}}catch{}
+  }
+  const m=message.split('\n')[0].match(/\(#([1-9]\d*)\)\s*$/);return m?.[1]||null;
+}
+async function scanFinalRepo(repo){
+  const name=repo.full_name;if(repo.empty)return;
+  if(!repo.default_branch)throw new Error('缺少預設分支，無法驗證主線');
+  const history=new Map();let tip=null,historyError=null;
+  progress('掃描 '+name+'：預設分支歷史（主線篩選）');
+  try{await pages(repoPath(name)+'/commits',{sha:repo.default_branch,stat:false,files:false,verification:false},xs=>{for(const c of xs){if(!tip)tip=c.sha;history.set(c.sha,c);}});}catch(e){if(e.name==='AbortError')throw e;historyError=e;warn(name+' 主線歷史',e);}
+  const visited=new Set();let sha=tip;
+  while(sha){
+    abort();if(visited.has(sha))throw new Error('主線 parent 出現循環，已停止');visited.add(sha);
+    let c=history.get(sha);if(!c){warn(name,new Error('主線歷史缺少 '+sha+'；保留已取得紀錄'));break;}
+    if(!Array.isArray(c.parents)){try{c={...c,...await commitDetail(name,sha)};}catch(e){warn(name+' '+sha,e);break;}}
+    if(!Array.isArray(c.parents))throw new Error('缺少 parent，無法確認主線範圍');
+    if(inRange(c)){
+      let pr=null,attribution='committer email（未驗證 PR）';const n=hintedPR(c,name);
+      if(n){try{const candidate=await api(repoPath(name)+'/pulls/'+n);if(candidate.merged&&candidate.merge_commit_sha===sha)pr=candidate;else note('pr-hint:'+name+'#'+n,'PR 線索未通過合併 SHA 核對，使用 committer email');}catch(e){warn(name+' PR #'+n,e);}}
+      const merger=pr?.merged_by;
+      const matches=merger?(merger.id!=null&&S.user.id!=null?merger.id===S.user.id:lower(merger.login)===lower(S.user.login)):!!S.email&&lower(c.commit?.committer?.email)===S.email;
+      if(merger)attribution='PR merged_by：'+(merger.login||merger.id);
+      if(matches){
+        const r={repo:name,sha,c,branches:new Set([repo.default_branch]),prs:new Set(),mergeResult:false,ambiguous:false,stats:null,files:null,statsState:'pending',prPending:false,finalResult:true,attribution};S.rows.set(key(name,sha),r);
+        if(pr){const id=name+'#'+pr.number;r.prs.add(id);S.prs.set(id,{id,repo:name,number:pr.number,title:pr.title||'',body:pr.body||'',url:S.base+'/'+name.split('/').map(enc).join('/')+'/pulls/'+pr.number,refs:refs(pr.body),merged:pr.merged_at,complete:true,commitSource:'最終 commit SHA 核對；不讀原始 commits'});}
+        await hydratePending(name);
+      }
+    }
+    sha=c.parents[0]?.sha||null;
+  }
+  if(historyError)note('partial-main:'+name,'主線歷史不完整，請查看未完成項目');
+}
+async function scanRepo(repo){return scanFinalRepo(repo);}
+// Repository discovery is separate from analysis. Never reuse another account's catalog.
+function configIdentity(){
+  return JSON.stringify([$('base').value.trim().replace(/\/+$/,''),$('auth').value,$('username').value.trim()]);
+}
+function catalogGroups(){
+  const q=lower($('catalogFilter').value),groups=new Map();
+  for(const repo of S.catalog.values()){
+    if(q&&!lower(repo.full_name).includes(q))continue;
+    const owner=repo.full_name.split('/')[0];
+    if(!groups.has(owner))groups.set(owner,[]);
+    groups.get(owner).push(repo);
+  }
+  return [...groups].sort(([a],[b])=>a.localeCompare(b)).map(([owner,repos])=>[owner,repos.sort((a,b)=>a.full_name.localeCompare(b.full_name))]);
+}
+function groupState(repos){
+  const count=repos.filter(r=>S.selected.has(r.full_name)).length;
+  return {checked:repos.length>0&&count===repos.length,indeterminate:count>0&&count<repos.length,count};
+}
+function chooseVisible(checked,owner=null){
+  if(S.busy)return;
+  for(const [group,repos] of catalogGroups())if(owner===null||group===owner){
+    for(const repo of repos){if(checked)S.selected.add(repo.full_name);else S.selected.delete(repo.full_name);}
+  }
+  renderCatalog();
+}
+function renderCatalog(){
+  const groups=catalogGroups(),ready=!!S.catalogIdentity;
+  $('selectionCount').textContent='已選取 '+S.selected.size+' / '+S.catalog.size+' 個 repo';
+  $('run').disabled=S.busy||!ready||!S.selected.size;
+  $('reloadCatalog').disabled=S.busy||S.catalogState==='empty';
+  $('selectVisible').disabled=S.busy||!ready||!groups.length;
+  $('clearSelection').disabled=S.busy||!S.selected.size;
+  $('catalogNotice').className=S.catalogState==='partial'?'notice':'muted';
+  $('catalogNotice').textContent=S.catalogState==='loading'?'正在載入可讀取專案，尚未開始掃描 commits…':
+    S.catalogState==='partial'?'清單不完整：已取得 '+S.catalog.size+' 個 repo。可分析已取得的項目，或按「重新載入清單」。\n'+S.catalogErrors.join('\n'):
+    S.catalogState==='ready'?'清單已載入，共 '+S.catalog.size+' 個 repo；初次載入與重新載入均不預選。群組勾選僅作用於目前顯示的項目。':
+    '請先連線並載入專案清單。';
+  $('catalog').innerHTML=groups.length?groups.map(([owner,repos])=>{
+    const g=groupState(repos);
+    return '<section class="repo-group"><label class="repo-choice repo-group-title"><input type="checkbox" data-owner="'+esc(owner)+'" '+(g.checked?'checked':'')+' aria-label="選取 '+esc(owner)+' 目前顯示的專案">'+esc(owner)+' <small>（已選 '+g.count+' / 顯示 '+repos.length+'）</small></label><div class="repo-options">'+repos.map(r=>'<label class="repo-choice"><input type="checkbox" data-repo="'+esc(r.full_name)+'" '+(S.selected.has(r.full_name)?'checked':'')+'>'+esc(r.full_name)+(r.archived?' <span class="badge">封存</span>':'')+(r.empty?' <span class="badge">空 repo</span>':'')+'</label>').join('')+'</div></section>';
+  }).join(''):'<div class="empty">'+(ready?'沒有符合篩選的專案。':'載入後，選擇這次要回顧的專案。')+'</div>';
+  for(const input of document.querySelectorAll('#catalog input[data-owner]')){
+    const group=groups.find(([owner])=>owner===input.dataset.owner);
+    input.indeterminate=!!group&&groupState(group[1]).indeterminate;
+  }
+}
+function invalidateCatalog(clearEmail=false){
+  S.schema=null;S.schemaBase=null;S.notes.clear();$('compatibility').textContent='';S.catalog.clear();S.selected.clear();S.catalogIdentity=null;S.catalogState='empty';S.catalogErrors=[];
+  if(clearEmail){S.user=null;S.email='';}
+  reset();renderCatalog();$('connection').textContent='連線資訊已變更，請重新載入專案。';$('status').textContent='尚未查詢。';
+}
+function busy(on){
+  S.busy=on;$('settings').disabled=on;$('repoSettings').disabled=on;
+  for(const id of ['check','clear'])$(id).disabled=on;
+  $('cancel').disabled=!on;$('export').disabled=on||(!S.rows.size&&!S.prs.size);renderCatalog();
+}
+function reset(){
+  S.rows.clear();S.prs.clear();S.commitCache.clear();S.errors=[];S.requests=0;S.page=0;S.outcome='尚未查詢';S.scanRepos=[];S.scanCatalogState='';
+  $('errors').replaceChildren();$('errorBox').hidden=true;S.resultRepos=null;$('resultRepoSearch').value='';$('progress').value=0;render();
+}
+async function loadCatalog(){
+  if(S.busy)return;
+  S.controller=new AbortController();reset();S.catalog.clear();S.selected.clear();S.catalogIdentity=null;
+  S.catalogErrors=[];S.catalogState='loading';S.schema=null;S.schemaBase=null;S.notes.clear();$('compatibility').textContent='';busy(true);
+  try{
+    readConfig();await identify();
+    S.catalogIdentity={config:configIdentity(),base:S.base,userId:S.user.id};
+    const collect=xs=>{
+      for(const r of xs){
+        const name=r.full_name||(r.owner?.login&&r.name?r.owner.login+'/'+r.name:'');
+        if(!name||name.split('/').length!==2){warn('專案清單',new Error('某筆 repo 缺少有效 owner/name'));continue;}
+        S.catalog.set(name,{...r,full_name:name});
+      }
+      renderCatalog();progress('正在載入專案清單：'+S.catalog.size+' 個 repo');
+    };
+    try{await pages('/repos/search',{q:'',sort:'alpha',order:'asc'},collect);}catch(e){warn('完整 repo 搜尋',e);}
+    try{await pages('/user/repos',{},collect);}catch(e){warn('使用者 repo 列表',e);}
+    S.catalogErrors=[...S.errors];S.catalogState=S.errors.length?'partial':'ready';
+    progress('專案清單'+(S.errors.length?'部分載入':'已載入')+'，請勾選搜尋對象。');
+  }catch(e){
+    S.catalogState='partial';S.catalogErrors=[...S.errors,e.name==='AbortError'?'已取消載入，清單不完整。':e.message];
+    $('connection').textContent=e.name==='AbortError'?'已停止載入清單。':e.message;
+    progress('專案清單未完整載入；可重新載入。');
+  }finally{S.headers=null;busy(false);render();}
+}
+async function run(){
+  if(S.busy)return;
+  if(!S.catalogIdentity||S.catalogIdentity.config!==configIdentity()){
+    invalidateCatalog(true);$('connection').textContent='請先連線並載入專案，再選擇搜尋對象。';return;
+  }
+  const repos=[...S.selected].map(name=>S.catalog.get(name)).filter(Boolean);
+  if(!repos.length){$('connection').textContent='請至少選取一個 repository。';return;}
+  S.controller=new AbortController();busy(true);
+  try{
+    reset();readConfig();
+    const start=Date.parse($('start').value+'T00:00:00+08:00'),end=Date.parse($('end').value+'T00:00:00+08:00')+86400000;
+    if(!Number.isFinite(start)||!Number.isFinite(end)||start>=end)throw new Error('請選擇有效日期，結束日期不可早於開始日期');
+    S.range={start,end};S.measurement='final';S.scope='default-first-parent';S.outcome='掃描中';
+    await identify();
+    if(S.user.id!==S.catalogIdentity.userId||S.base!==S.catalogIdentity.base){
+      invalidateCatalog(true);throw new Error('登入身分已變更，請重新載入專案清單。');
+    }
+    if(!S.email)warn('帳號資訊',new Error('帳號未提供 email；僅納入可驗證 PR 合併者的紀錄，其他提交無法歸屬'));
+    S.scanRepos=repos.map(r=>r.full_name);S.scanCatalogState=S.catalogState;
+    for(const error of S.catalogErrors)warn('專案清單不完整',new Error(error));
+    let i=0;$('progress').max=repos.length;
+    for(const repo of repos){abort();try{await scanRepo(repo);}catch(e){warn(repo.full_name,e);}$('progress').value=++i;render();}
+    S.outcome=S.errors.length?'部分完成':'完成（仍受歷史可追溯性限制）';progress(S.outcome+' · 已掃描 '+i+' / 已選取 '+repos.length+' 個 repo');
+  }catch(e){
+    S.outcome=e.name==='AbortError'?'已停止，結果不完整':'未完成';progress(S.outcome);
+    if(e.name!=='AbortError')$('connection').textContent=e.message;
+  }finally{S.headers=null;busy(false);render();}
+}
+function related(r){return [...r.prs].map(id=>S.prs.get(id)).filter(Boolean);}
+function rowRefs(r){return [...new Map(related(r).flatMap(p=>p.refs).map(x=>[x.key.toLowerCase(),x])).values()];}
+function matches(r){const q=lower($('query').value),k=$('kind').value;return resultRepoMatches(r.repo)&&(!q||lower([r.repo,r.sha,r.c.commit?.message,...related(r).map(p=>p.title+' '+p.id),...rowRefs(r).map(i=>i.key)].join(' ')).includes(q))&&(!k||k==='included'&&included(r)||k==='excluded'&&!included(r)||k==='unlinked'&&!r.prs.size);}
+function filtered(){return [...S.rows.values()].filter(matches).sort((a,b)=>Date.parse(b.c.commit?.committer?.date)-Date.parse(a.c.commit?.committer?.date));}
+function aggregate(rows){const valid=rows.filter(included),stats=valid.filter(r=>r.stats?.add!=null&&r.stats?.del!=null),files=valid.filter(r=>r.files!==null);return {commits:rows.length,included:valid.length,excluded:rows.length-valid.length,add:stats.reduce((n,r)=>n+r.stats.add,0),del:stats.reduce((n,r)=>n+r.stats.del,0),fileEvents:files.reduce((n,r)=>n+r.files.length,0),unique:new Set(files.flatMap(r=>r.files.map(f=>r.repo+'/'+f))).size,missing:valid.length-stats.length,missingFiles:valid.length-files.length};}
+function viewData(rows){if(S.tab==='commits')return rows;if(S.tab==='repos'){const m=new Map();for(const r of rows){if(!m.has(r.repo))m.set(r.repo,[]);m.get(r.repo).push(r);}return [...m].map(([repo,rs])=>({repo,...aggregate(rs)})).sort((a,b)=>b.commits-a.commits);}if(S.tab==='issues'){const m=new Map();for(const r of rows)for(const ref of rowRefs(r)){if(!m.has(ref.key.toLowerCase()))m.set(ref.key.toLowerCase(),{...ref,rows:new Set(),prs:new Set()});const v=m.get(ref.key.toLowerCase());v.rows.add(r);for(const p of related(r))if(p.refs.some(x=>lower(x.key)===lower(ref.key)))v.prs.add(p.id);}return [...m.values()];}const ids=new Set(rows.flatMap(r=>[...r.prs]));const q=lower($('query').value);return [...S.prs.values()].filter(p=>ids.has(p.id)||(p.orphan&&!$('kind').value&&resultRepoMatches(p.repo)&&(!q||lower(p.title+' '+p.id+' '+p.body).includes(q)))).map(p=>({...p,count:rows.filter(r=>r.prs.has(p.id)).length}));}
+const val=n=>n===null||n===undefined?'—':n.toLocaleString('en-US');
+function resultRepoNames(){return [...new Set([...S.rows.values()].map(r=>r.repo))].sort();}
+function resultRepoMatches(repo){return S.resultRepos===null||S.resultRepos.has(repo);}
+function selectResultRepo(repo,checked){if(S.resultRepos===null)S.resultRepos=new Set(resultRepoNames());if(checked)S.resultRepos.add(repo);else S.resultRepos.delete(repo);S.page=0;render();}
+let resultRepoMarkupKey=null;
+function renderResultRepos(){
+ const counts=new Map();for(const row of S.rows.values())counts.set(row.repo,(counts.get(row.repo)||0)+1);
+ const names=resultRepoNames(),count=names.filter(resultRepoMatches).length,q=lower($('resultRepoSearch').value),visible=names.filter(n=>lower(n).includes(q));
+ $('repoFilterSummary').textContent=!names.length?'尚無紀錄':count===names.length?'全部 '+names.length+' 個專案':count?'已選 '+count+' / '+names.length+' 個專案':'未選取專案';
+ $('resultReposAll').disabled=$('resultReposNone').disabled=!names.length;
+ // Keep checkbox DOM stable during selection so keyboard focus and scroll position survive.
+ const markupKey=JSON.stringify([q,names.map(n=>[n,counts.get(n)])]);
+ if(markupKey!==resultRepoMarkupKey){
+   resultRepoMarkupKey=markupKey;
+   $('repoFilter').innerHTML=visible.length?visible.map(n=>{const slash=n.indexOf('/'),owner=n.slice(0,slash),repo=n.slice(slash+1);return '<label><input type="checkbox" data-result-repo="'+esc(n)+'" aria-label="'+esc(n)+'"'+(resultRepoMatches(n)?' checked':'')+'><span class="result-repo-name"><small>'+esc(owner)+'</small><strong>'+esc(repo)+'</strong></span><span class="result-repo-count">'+counts.get(n)+' 筆</span></label>';}).join(''):'<p class="result-repo-empty">'+(names.length?'沒有符合名稱的專案，請調整搜尋文字。':'尚未找到工作紀錄；有紀錄後才會顯示專案。')+'</p>';
+ }
+ document.querySelectorAll('#repoFilter input[data-result-repo]').forEach(input=>{input.checked=resultRepoMatches(input.dataset.resultRepo);});
+}
+function render(){renderResultRepos();const rows=filtered(),a=aggregate(rows),refsSet=new Set(rows.flatMap(r=>rowRefs(r).map(i=>lower(i.key))));$('metrics').innerHTML=[['個人紀錄',a.commits],['涉及專案',new Set(rows.map(r=>r.repo)).size],['引用 Issues',refsSet.size],['新增行數',a.add],['刪除行數',a.del],['變更量總計',a.included>0&&a.missing===a.included?null:a.add+a.del,'新增＋刪除 · 依目前篩選'+(a.missing?' · 僅已知部分':'')],['變更檔案次數',a.fileEvents]].map(([label,n,help])=>'<div class="metric"><span>'+label+'</span><b>'+val(n)+'</b>'+(help?'<small>'+help+'</small>':'')+'</div>').join('');$('summary').textContent='目前 '+rows.length+' 筆 · 納入變更量 '+a.included+' 筆 · 排除／待確認 '+a.excluded+' 筆 · 缺行數 '+a.missing+' 筆／缺檔案 '+a.missingFiles+' 筆 · 不重複檔案 '+a.unique+' 個（已知部分）';const data=viewData(rows),total=Math.ceil(data.length/50);S.page=Math.min(S.page,Math.max(0,total-1));$('pageInfo').textContent=(total?S.page+1:0)+' / '+total;$('prev').disabled=S.page===0;$('next').disabled=S.page+1>=total;$('export').disabled=S.busy||!data.length;let heads,cells;
+if(S.tab==='commits'){heads=['時間（台灣）／專案','Commit message','PR／Issues','檔案','新增','刪除','變更量','統計狀態'];cells=r=>{const st=r.stats,known=st?.add!=null&&st?.del!=null;return ['<small>'+esc(taipei(r.c.commit?.committer?.date))+'</small><br>'+esc(r.repo)+'<br>'+href(S.base+'/'+r.repo.split('/').map(enc).join('/')+'/commit/'+enc(r.sha),r.sha.slice(0,10)),'<details><summary>'+esc((r.c.commit?.message||'').split('\n')[0])+'</summary><pre>'+esc(r.c.commit?.message)+'</pre><small>Author: '+esc(r.c.commit?.author?.email)+'<br>Author date: '+esc(taipei(r.c.commit?.author?.date))+'<br>分支：'+esc([...r.branches].join(', ')||'僅 PR')+'</small></details>',related(r).map(p=>href(p.url,p.id)+(r.ambiguous?' <small>候選關聯</small>':'')).join('<br>')+'<br>'+rowRefs(r).map(i=>href(i.url,i.key)).join('<br>'),r.files===null?'—':'<details><summary>'+r.files.length+'</summary><pre>'+esc(r.files.join('\n'))+'</pre></details>','<span class="plus">'+val(st?.add)+'</span><br><small>'+esc(r.statsSource||'')+'</small>','<span class="minus">'+val(st?.del)+'</span>',known?val(st.add+st.del):'—','<span class="badge '+(included(r)?'':'warn')+'">'+esc(reason(r)||(known?'納入變更量':'符合納入規則；行數未取得'))+'</span><br><small>'+esc(statisticsStatus(r))+(r.attribution?' · '+esc(r.attribution):'')+' · '+(r.prs.size?'':r.prPending?'PR 尚未掃描完成':'未找到 PR')+'</small>'+(r.detailError?'<details><summary>統計讀取說明</summary><p>'+esc(r.detailError)+'</p></details>':'')];};}
+else if(S.tab==='repos'){heads=['Repository','個人紀錄','納入／排除','新增','刪除','變更量','檔案次數／不重複','缺行數／檔案'];cells=r=>[esc(r.repo),r.commits,r.included+' / '+r.excluded,val(r.add),val(r.del),val(r.add+r.del),r.fileEvents+' / '+r.unique,r.missing+' / '+r.missingFiles];}
+else if(S.tab==='issues'){heads=['Issue reference','關聯個人紀錄（含待確認）','Pull requests'];cells=r=>[href(r.url,r.key),r.rows.size,[...r.prs].map(id=>href(S.prs.get(id).url,id)).join('<br>')];}
+else{heads=['Pull request','描述與引用 Issues','合併時間','個人紀錄','追溯狀態'];cells=p=>[href(p.url,p.id)+'<br>'+esc(p.title),'<details><summary>'+esc(p.refs.map(r=>r.key).join(', ')||'未引用 issue')+'</summary><pre>'+esc(p.body)+'</pre></details>'+p.refs.map(i=>href(i.url,i.key)).join('<br>'),esc(taipei(p.merged)),p.count,p.orphan?'本人 PR，期間內未還原個人提交':p.complete?'已讀取 · '+esc(p.commitSource||'PR API'):'資料不完整'];}
+$('results').innerHTML=data.length?'<table><thead><tr>'+heads.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+data.slice(S.page*50,S.page*50+50).map(r=>'<tr>'+cells(r).map((v,i)=>'<td'+(i===1?' class="message"':'')+'>'+v+'</td>').join('')+'</tr>').join('')+'</tbody></table>':'<div class="empty">'+(S.busy?'正在整理紀錄…':'目前沒有符合條件的紀錄。')+'</div>';}
+function csvCell(v){let t=String(v??'');if(/^[\s\uFEFF]*[=+\-@]/.test(t)||/^[\t\r\n]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"';}
+function csvData(){const data=viewData(filtered());let headers,rows;if(S.tab==='commits'){headers=['repo','sha','committer_date_taipei','author_date_taipei','author_email','message','branches','pull_requests','pr_urls','issue_refs','issue_urls','files_count','additions','deletions','changes','counted','reason','commit_url','stats_source','statistics_error','statistics_state','pr_scan_pending','attribution'];rows=data.map(r=>{const p=related(r),i=rowRefs(r);return [r.repo,r.sha,taipei(r.c.commit?.committer?.date),taipei(r.c.commit?.author?.date),r.c.commit?.author?.email,r.c.commit?.message,[...r.branches].join('; '),p.map(x=>x.id).join('; '),p.map(x=>x.url).join('; '),i.map(x=>x.key).join('; '),i.map(x=>x.url).join('; '),r.files?.length,r.stats?.add,r.stats?.del,r.stats?.add!=null&&r.stats?.del!=null?r.stats.add+r.stats.del:null,included(r)?'yes':'no',reason(r)||'納入變更量',S.base+'/'+r.repo.split('/').map(enc).join('/')+'/commit/'+r.sha,r.statsSource||'',r.detailError||'',statisticsStatus(r),r.prPending?'yes':'no',r.attribution||'author email'];});}else if(S.tab==='repos'){headers=['repo','records','included','excluded','additions_known','deletions_known','file_events_known','unique_files_known','missing_stats','missing_files'];rows=data.map(r=>[r.repo,r.commits,r.included,r.excluded,r.add,r.del,r.fileEvents,r.unique,r.missing,r.missingFiles]);}else if(S.tab==='issues'){headers=['issue','url','linked_records','pull_requests'];rows=data.map(r=>[r.key,r.url,r.rows.size,[...r.prs].join('; ')]);}else{headers=['pr','title','body','url','merged_at_taipei','linked_records','issues','trace_status','commit_source'];rows=data.map(p=>[p.id,p.title,p.body,p.url,taipei(p.merged),p.count,p.refs.map(i=>i.key).join('; '),p.orphan?'原始提交無法完整還原':p.complete?'已讀取':'不完整',p.commitSource||'']);}const meta=['selected_repositories','repository_catalog_status','scan_status','scan_errors','period_start_taipei','period_end_exclusive_taipei','target_email','branch_scope','measurement'];return '\uFEFF'+[[...headers,...meta],...rows.map(r=>[...r,S.scanRepos.join('; '),S.scanCatalogState,S.outcome,S.errors.join(' | '),taipei(S.range?.start),taipei(S.range?.end),S.email,S.scope,'final'])].map(r=>r.map(csvCell).join(',')).join('\r\n');}
+$('catalogFilter').addEventListener('input',renderCatalog);
+$('selectVisible').onclick=()=>chooseVisible(true);
+$('clearSelection').onclick=()=>{if(!S.busy){S.selected.clear();renderCatalog();}};
+$('catalog').addEventListener('change',e=>{
+  if(S.busy)return;
+  const input=e.target;
+  if(input.dataset.repo&&S.catalog.has(input.dataset.repo)){
+    if(input.checked)S.selected.add(input.dataset.repo);else S.selected.delete(input.dataset.repo);
+    renderCatalog();
+  }else if(input.dataset.owner)chooseVisible(input.checked,input.dataset.owner);
+});
+for(const id of ['base','username','auth','secret'])$(id).addEventListener('input',()=>{if(!S.busy)invalidateCatalog(true);});
+$('resultRepoSearch').addEventListener('input',renderResultRepos);
+$('repoFilter').addEventListener('change',e=>{const repo=e.target.dataset?.resultRepo;if(repo!==undefined)selectResultRepo(repo,e.target.checked);});
+$('resultReposAll').onclick=()=>{S.resultRepos=null;S.page=0;render();};
+$('resultReposNone').onclick=()=>{S.resultRepos=new Set();S.page=0;render();};
+$('form').addEventListener('submit',e=>{e.preventDefault();run();});$('check').onclick=loadCatalog;$('reloadCatalog').onclick=loadCatalog;$('cancel').onclick=()=>S.controller?.abort();$('clear').onclick=()=>{invalidateCatalog(true);for(const id of ['secret','username'])$(id).value='';S.email='';S.user=null;S.headers=null;$('connection').textContent='已清空資料與驗證資訊。';$('status').textContent='尚未查詢。';};for(const id of ['query','kind'])$(id).addEventListener('input',()=>{S.page=0;render();});document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;S.page=0;document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));render();});$('prev').onclick=()=>{S.page--;render();};$('next').onclick=()=>{S.page++;render();};$('export').onclick=()=>{const blob=new Blob([csvData()],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='gitea_'+S.tab+'_'+today+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};window.addEventListener('pagehide',()=>{S.controller?.abort();S.headers=null;$('secret').value='';});render();renderCatalog();
+</script></body></html>
